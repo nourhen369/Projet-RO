@@ -12,11 +12,11 @@ def pl2():
             nb_heures_max_supplementaires = int(nb_heures_max_supplementaires_entry.get())
             cout_recrutement_ouvrier = float(cout_recrutement_ouvrier_entry.get())
             cout_licenciement_ouvrier = float(cout_licenciement_ouvrier_entry.get())
-            cout_stockage_paire_chaussure = float(cout_stockage_paire_chaussure_entry.get())
+            cout_stockage_paire_chaussure = float(cout_stockage_paire_chaussure_entry.get()) # depend de nb_mois
             cout_heure_supplementaire_ouvrier = float(cout_heure_supplementaire_ouvrier_entry.get())
-            cout_mat_paire_chaussure = float(cout_mat_paire_chaussure_entry.get())
+            cout_mat_paire_chaussure = float(cout_mat_paire_chaussure_entry.get()) # depend de nb_mois
             heures_travail_paire_chaussure = float(heures_travail_paire_chaussure_entry.get())
-            demande_par_mois = float(demande_par_mois_entry.get())
+            demande_par_mois = float(demande_par_mois_entry.get()) # depend de nb_mois
             stock_init = float(stock_init_entry.get())
 
             # Create a new optimization model
@@ -44,7 +44,6 @@ def pl2():
                 gp.GRB.MINIMIZE,
             )
             
-
             # Constraints
             model.addConstr(y[0] == nb_ouvriers_initiaux)
             for t in range(1, nb_mois):
@@ -193,7 +192,17 @@ def pl2():
     result_text.grid(row=15, columnspan=4)
 
 def nombre_mois():
-    return int(nb_mois_entry.get())
+    try:
+        nb_mois = int(nb_mois_entry.get())
+
+        # Validate input value
+        if nb_mois <= 0 or nb_mois > 12:
+            raise ValueError("Number of months must be between 1 and 12.")
+
+        return nb_mois
+    except ValueError as error:
+        messagebox.showerror("Error", str(error))
+        return None
 
 root = tk.Tk()
 root.title("ChausseTous Entreprise Production Optimization")
