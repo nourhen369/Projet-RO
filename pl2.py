@@ -1,112 +1,101 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, Scrollbar
 import gurobipy as gp
 from gurobipy import GRB
 import ttkbootstrap as tkb
-
 
 def pl2():
     def create_heures_sup_entries(nb_mois):
         heures_sup_entries = []
         for i in range(nb_mois):
-            heures_sup_entries_label = tk.Label(root, text=f"Number of overtime hours per month {i+1}:")
+            heures_sup_entries_label = tk.Label(root, text=f"Maximum overtime hours per month {i+1}:")
             heures_sup_entries_label.grid(row=2+i, column=0)
             entry = tk.Entry(root)
             entry.insert(tk.END, default_values["heures_sup"]) 
             entry.grid(row=2+i, column=1)
             heures_sup_entries.append(entry)
         return heures_sup_entries  
-
     def create_nb_chaussures_entries(nb_mois):
         nb_chaussures_entries = []
         for i in range(nb_mois):
             nb_chaussures_entries_label = tk.Label(root, text=f"Number of pairs of shoes made at the end of month {i+1}:")
-            nb_chaussures_entries_label.grid(row=3+i, column=0)
+            nb_chaussures_entries_label.grid(row=2+nb_mois+i, column=0)
             entry = tk.Entry(root)
             entry.insert(tk.END, default_values["nb_chaussures"]) 
-            entry.grid(row=3+i, column=1)
+            entry.grid(row=2+nb_mois+i, column=1)
             nb_chaussures_entries.append(entry)
         return nb_chaussures_entries 
-
     def create_nb_ouv_rec_entries(nb_mois):
         nb_ouv_rec_entries = []
         for i in range(nb_mois):
             nb_ouv_rec_entries_label = tk.Label(root, text=f"Number of workers recruited at the start of month {i+1}:")
-            nb_ouv_rec_entries_label.grid(row=4+i, column=0)
+            nb_ouv_rec_entries_label.grid(row=2+2*nb_mois+i, column=0)
             entry = tk.Entry(root)
             entry.insert(tk.END, default_values["nb_ouv_rec"]) 
-            entry.grid(row=4+i, column=1)
+            entry.grid(row=2+i+2*nb_mois, column=1)
             nb_ouv_rec_entries.append(entry)
         return nb_ouv_rec_entries  
-
     def create_nb_ouv_lic_entries(nb_mois):
         nb_ouv_lic_entries = []
         for i in range(nb_mois):
             nb_ouv_lic_entries_label = tk.Label(root, text=f"Number of workers licensed at the start of month {i+1}:")
-            nb_ouv_lic_entries_label.grid(row=5+i, column=0)
+            nb_ouv_lic_entries_label.grid(row=2+3*nb_mois+i, column=0)
             entry = tk.Entry(root)
             entry.insert(tk.END, default_values["nb_ouv_lic"]) 
-            entry.grid(row=5+i, column=1)
+            entry.grid(row=2+i+3*nb_mois, column=1)
             nb_ouv_lic_entries.append(entry)
         return nb_ouv_lic_entries  
-
     def create_stock_entries(nb_mois):
         stock_entries = []
         for i in range(nb_mois):
-            stock_par_mois_label = tk.Label(root, text=f"Stock per month {i+1}:")
-            stock_par_mois_label.grid(row=6+i, column=0)
+            stock_par_mois_label = tk.Label(root, text=f"Stock on month {i+1}:")
+            stock_par_mois_label.grid(row=2+i+4*nb_mois, column=0)
             entry = tk.Entry(root)
             entry.insert(tk.END, default_values["stock_par_mois"]) 
-            entry.grid(row=6+i, column=1)
+            entry.grid(row=2+i+4*nb_mois, column=1)
             stock_entries.append(entry)
         return stock_entries   
-
     def create_nb_ouvriers_init_entries(nb_mois):
         nb_ouvriers_init_entries = []
         for i in range(nb_mois):
-            nb_ouvriers_init_label = tk.Label(root, text=f"Number of workers available on month {i+1}:")
-            nb_ouvriers_init_label.grid(row=7+i, column=0)
+            nb_ouvriers_init_label = tk.Label(root, text=f"Workers available on month {i+1}:")
+            nb_ouvriers_init_label.grid(row=2+i+5*nb_mois, column=0)
             entry = tk.Entry(root)
             entry.insert(tk.END, default_values["nb_ouv_init"]) 
-            entry.grid(row=7+i, column=1)
+            entry.grid(row=2+i+5*nb_mois, column=1)
             nb_ouvriers_init_entries.append(entry)
         return nb_ouvriers_init_entries 
-
-########################################################################
-
+############################# 2eme colonne #############################
     def create_demand_entries(nb_mois):
         demand_entries = []
         for i in range(nb_mois):
-            demande_par_mois_label = tk.Label(root, text=f"Demand per month {i+1}:")
-            demande_par_mois_label.grid(row=1+i, column=4)
+            demande_par_mois_label = tk.Label(root, text=f"Demand on month {i+1}:")
+            demande_par_mois_label.grid(row=2+i+6*nb_mois, column=0)
             entry = tk.Entry(root)
             entry.insert(tk.END, default_values["demande_par_mois"]) 
-            entry.grid(row=1+i, column=5)
+            entry.grid(row=2+i+6*nb_mois, column=1)
             demand_entries.append(entry)
         return demand_entries   
-      
     def create_cout_stockage_paire_chaussure_entries(nb_mois):
         cout_stockage_paire_chaussure_entries = []
         for i in range(nb_mois):
             cout_stockage_paire_chaussure_label = tk.Label(root, text=f"Cost of storing a pair of shoes on month {i+1}:")
-            cout_stockage_paire_chaussure_label.grid(row=3+nb+i, column=4)
+            cout_stockage_paire_chaussure_label.grid(row=3+i, column=4)
             entry = tk.Entry(root)
             entry.insert(tk.END, default_values["cout_stockage_paire_chaussure"]) 
-            entry.grid(row=3+nb+i, column=5)
+            entry.grid(row=3+i, column=5)
             cout_stockage_paire_chaussure_entries.append(entry)
-        return cout_stockage_paire_chaussure_entries   
-    
+        return cout_stockage_paire_chaussure_entries     
     def create_salaires_entries(nb_mois):
         salaires_entries = []
         for i in range(nb_mois):
             salaires_entries_label = tk.Label(root, text=f"Salary of each employee on month {i+1}:")
-            salaires_entries_label.grid(row=4+2*nb+i, column=4)
+            salaires_entries_label.grid(row=3+nb+i, column=4)
             entry = tk.Entry(root)
             entry.insert(tk.END, default_values["salaires"]) 
-            entry.grid(row=4+2*nb+i, column=5)
+            entry.grid(row=3+nb+i, column=5)
             salaires_entries.append(entry)
         return salaires_entries  
-
     def create_cout_mat_paire_chaussure_entries(nb_mois):
         cout_mat_paire_chaussure_entries = []
         for i in range(nb_mois):
@@ -116,7 +105,7 @@ def pl2():
             entry.insert(tk.END, default_values["cout_mat_paire_chaussure"]) 
             entry.grid(row=8+nb+i, column=1)
             cout_mat_paire_chaussure_entries.append(entry)
-        return cout_mat_paire_chaussure_entries    
+        return cout_mat_paire_chaussure_entries      
     
     def solve_optimization():
         try: 
@@ -214,7 +203,6 @@ def pl2():
         "salaires": 1500,
         "cout_recrutement_ouvrier": 1600,
         "cout_licenciement_ouvrier": 2000,
-
         "nb_heures_travail_par_ouvrier": 160,
         "nb_heures_max_supplementaires": 20, 
         "cout_stockage_paire_chaussure": 3,
@@ -229,58 +217,45 @@ def pl2():
     nb_mois_label.grid(row=0, columnspan=5)
 
     create_heures_sup_entries(nb)
-
     create_nb_chaussures_entries(nb)
-    
     create_nb_ouv_rec_entries(nb)
-
     create_nb_ouv_lic_entries(nb)
-
     create_stock_entries(nb)
-
     create_nb_ouvriers_init_entries(nb)
-########################
-
-
     create_demand_entries(nb)
-
+########################
     # create the entry of the cost of an additional hour
     demande_par_mois_label = tk.Label(root, text="Cost of an additional hour:")
-    demande_par_mois_label.grid(row=2+nb, column=4)
+    demande_par_mois_label.grid(row=2, column=4)
     demande_par_mois_entry = tk.Entry(root)
     demande_par_mois_entry.insert(tk.END, default_values["cout_recrutement_ouvrier"]) 
-    demande_par_mois_entry.grid(row=2+nb, column=5)
-
+    demande_par_mois_entry.grid(row=2, column=5)
     create_cout_stockage_paire_chaussure_entries(nb)
-
     create_salaires_entries(nb)
-
     # create the entry of "frais de recrutement"
     recrutement_par_mois_label = tk.Label(root, text="Recruitment costs:")
-    recrutement_par_mois_label.grid(row=5+3*nb, column=4)
+    recrutement_par_mois_label.grid(row=3+2*nb, column=4)
     recrutement_par_mois_entry = tk.Entry(root)
     recrutement_par_mois_entry.insert(tk.END, default_values["cout_recrutement_ouvrier"]) 
-    recrutement_par_mois_entry.grid(row=5+3*nb, column=5)
-
+    recrutement_par_mois_entry.grid(row=3+2*nb, column=5)
     # create the entry of  "frais de licenciement"
     licenciement_par_mois_label = tk.Label(root, text="Licenciement costs:")
-    licenciement_par_mois_label.grid(row=6+3*nb, column=4)
+    licenciement_par_mois_label.grid(row=4+2*nb, column=4)
     licenciement_par_mois_entry = tk.Entry(root)
     licenciement_par_mois_entry.insert(tk.END, default_values["demande_par_mois"]) 
-    licenciement_par_mois_entry.grid(row=6+3*nb, column=5)
-
-    # create the entry of  "frais de licenciement"
+    licenciement_par_mois_entry.grid(row=4+2*nb, column=5)
+    # create the entry of total working hours per month
     working_hours_par_mois_label = tk.Label(root, text="Number of working hours for each worker:")
-    working_hours_par_mois_label.grid(row=7+4*nb, column=4)
+    working_hours_par_mois_label.grid(row=5+2*nb, column=4)
     working_hours_par_mois_entry = tk.Entry(root)
     working_hours_par_mois_entry.insert(tk.END, default_values["nb_heures_travail_par_ouvrier"]) 
-    working_hours_par_mois_entry.grid(row=7+4*nb, column=5)
+    working_hours_par_mois_entry.grid(row=5+2*nb, column=5)
 
     solve_button = tk.Button(root, text="Solve", command=solve_optimization)
-    solve_button.grid(row=8+4*nb, column=4)
+    solve_button.grid(row=6+2*nb, column=4)
 
     result_text = tk.Text(root, height=5, width=50, wrap=tk.WORD)
-    result_text.grid(row=8+4*nb, column=5)
+    result_text.grid(row=6+2*nb, column=5)
 
 def nombre_mois():
     try:
@@ -314,6 +289,9 @@ nb_mois_entry.pack(side=tk.TOP, anchor=tk.CENTER)
 solve_button = tk.Button(root, text="Continue Solving", command=pl2)
 solve_button.pack(pady=20)
 solve_button.pack(side=tk.TOP, anchor=tk.CENTER)
+
+scrollbar = Scrollbar(root)
+scrollbar.pack(side= "right", fill="both")
 
 root.mainloop()
 
