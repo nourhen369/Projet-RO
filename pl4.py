@@ -187,10 +187,11 @@ num_regions_entry.pack()
 
 proceed_button = tk.Button(root, text="Proceed", command=get_num_regions)
 proceed_button.pack()
+
 def go_to_homepage():
-    os.system("Projet-ro/main.py")
+    # This function will handle the action when the button is clicked
+   os.system('python3 main.py')
 
-home_button = tk.Button(root, text="Go to Home Page", command=go_to_homepage)
-home_button.pack()
-
+execute_button = tk.Button(root, text="go home", command=go_to_homepage)
+execute_button.pack()
 root.mainloop()
