@@ -98,7 +98,7 @@ def pl2():
     # Create a Tkinter window
     root = tk.Tk()
     root.title("ChausseTous Entreprise Production Optimization")
-
+    
     # Default values for parameters
     default_values = {
         "nb_mois": 1,
