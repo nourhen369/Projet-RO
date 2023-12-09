@@ -2,8 +2,64 @@ import tkinter as tk
 from tkinter import messagebox
 import gurobipy as gp
 from gurobipy import GRB
+import ttkbootstrap as tkb
+
 
 def pl2():
+    def create_demand_entries(nb_mois):
+        demand_entries = []
+        '''
+        demande_par_mois_label = tk.Label(root, text="Demand per month:")
+        demande_par_mois_label.grid(row=10, column=0)
+        demande_par_mois_entry = tk.Entry(root)
+        demande_par_mois_entry.insert(tk.END, default_values["demande_par_mois"]) 
+        demande_par_mois_entry.grid(row=10, column=1)
+        '''
+        for i in range(nb_mois):
+            demande_par_mois_label = tk.Label(root, text=f"Demand per month {i+1}:")
+            demande_par_mois_label.grid(row=10+nb+i, column=0)
+            entry = tk.Entry(root)
+            entry.insert(tk.END, default_values["demande_par_mois"]) 
+            entry.grid(row=10+nb+i, column=1)
+            demand_entries.append(entry)
+        return demand_entries   
+    
+    def create_cout_stockage_paire_chaussure_entries(nb_mois):
+        '''
+        cout_stockage_paire_chaussure_label = tk.Label(root, text="Cost of storing a pair of shoes:")
+        cout_stockage_paire_chaussure_label.grid(row=6, column=0)
+        cout_stockage_paire_chaussure_entry = tk.Entry(root)
+        cout_stockage_paire_chaussure_entry.insert(tk.END, default_values["cout_stockage_paire_chaussure"]) 
+        cout_stockage_paire_chaussure_entry.grid(row=6, column=1)
+        '''
+        cout_stockage_paire_chaussure_entries = []
+        for i in range(nb_mois):
+            cout_stockage_paire_chaussure_label = tk.Label(root, text=f"Cost of storing a pair of shoes on month {i+1}:")
+            cout_stockage_paire_chaussure_label.grid(row=6+i, column=0)
+            entry = tk.Entry(root)
+            entry.insert(tk.END, default_values["cout_stockage_paire_chaussure"]) 
+            entry.grid(row=6+i, column=1)
+            cout_stockage_paire_chaussure_entries.append(entry)
+        return cout_stockage_paire_chaussure_entries   
+    
+    def create_cout_mat_paire_chaussure_entries(nb_mois):
+        '''
+        cout_mat_paire_chaussure_label = tk.Label(root, text="Cost of material per pair of shoes:")
+        cout_mat_paire_chaussure_label.grid(row=8+nb, column=0)
+        cout_mat_paire_chaussure_entry = tk.Entry(root)
+        cout_mat_paire_chaussure_entry.insert(tk.END, default_values["cout_mat_paire_chaussure"]) 
+        cout_mat_paire_chaussure_entry.grid(row=8+nb, column=1)
+        '''
+        cout_mat_paire_chaussure_entries = []
+        for i in range(nb_mois):
+            cout_mat_paire_chaussure_label = tk.Label(root, text=f"Cost of material per pair of shoes on month {i}:")
+            cout_mat_paire_chaussure_label.grid(row=8+nb+i, column=0)
+            entry = tk.Entry(root)
+            entry.insert(tk.END, default_values["cout_mat_paire_chaussure"]) 
+            entry.grid(row=8+nb+i, column=1)
+            cout_mat_paire_chaussure_entries.append(entry)
+        return cout_mat_paire_chaussure_entries   
+
     def solve_optimization():
         try:
             # Retrieve parameter values from the GUI entries
@@ -12,11 +68,11 @@ def pl2():
             nb_heures_max_supplementaires = int(nb_heures_max_supplementaires_entry.get())
             cout_recrutement_ouvrier = float(cout_recrutement_ouvrier_entry.get())
             cout_licenciement_ouvrier = float(cout_licenciement_ouvrier_entry.get())
-            cout_stockage_paire_chaussure = float(cout_stockage_paire_chaussure_entry.get()) # depend de nb_mois
+            cout_stockage_paire_chaussure = create_cout_stockage_paire_chaussure_entries(nb) # depend de nb_mois
             cout_heure_supplementaire_ouvrier = float(cout_heure_supplementaire_ouvrier_entry.get())
-            cout_mat_paire_chaussure = float(cout_mat_paire_chaussure_entry.get()) # depend de nb_mois
+            cout_mat_paire_chaussure = create_cout_mat_paire_chaussure_entries(nb) # depend de nb_mois
             heures_travail_paire_chaussure = float(heures_travail_paire_chaussure_entry.get())
-            demande_par_mois = float(demande_par_mois_entry.get()) # depend de nb_mois
+            demande_par_mois = create_demand_entries(nb) # depend de nb_mois
             stock_init = float(stock_init_entry.get())
 
             # Create a new optimization model
@@ -91,13 +147,15 @@ def pl2():
                 result_text.delete(1.0, tk.END)
                 result_text.insert(tk.END, "Optimization did not converge")
                 messagebox.showwarning("Warning", "Model could not be solved to optimality.")
-
         except ValueError:
             messagebox.showerror("Error", "Please enter valid numeric values.")
+
 
     # Create a Tkinter window
     root = tk.Tk()
     root.title("ChausseTous Entreprise Production Optimization")
+
+    nb = nombre_mois()
     
     # Default values for parameters
     default_values = {
@@ -149,72 +207,68 @@ def pl2():
     cout_licenciement_ouvrier_entry.insert(tk.END, default_values["cout_licenciement_ouvrier"]) 
     cout_licenciement_ouvrier_entry.grid(row=5, column=1)
 
-    cout_stockage_paire_chaussure_label = tk.Label(root, text="Cost of storing a pair of shoes:")
-    cout_stockage_paire_chaussure_label.grid(row=6, column=0)
-    cout_stockage_paire_chaussure_entry = tk.Entry(root)
-    cout_stockage_paire_chaussure_entry.insert(tk.END, default_values["cout_stockage_paire_chaussure"]) 
-    cout_stockage_paire_chaussure_entry.grid(row=6, column=1)
+    create_cout_stockage_paire_chaussure_entries(nb)
 
     cout_heure_supplementaire_ouvrier_label = tk.Label(root, text="Cost of overtime per hour:")
-    cout_heure_supplementaire_ouvrier_label.grid(row=7, column=0)
+    cout_heure_supplementaire_ouvrier_label.grid(row=7+nb, column=0)
     cout_heure_supplementaire_ouvrier_entry = tk.Entry(root)
     cout_heure_supplementaire_ouvrier_entry.insert(tk.END, default_values["cout_heure_supplementaire_ouvrier"]) 
-    cout_heure_supplementaire_ouvrier_entry.grid(row=7, column=1)
+    cout_heure_supplementaire_ouvrier_entry.grid(row=7+nb, column=1)
 
-    cout_mat_paire_chaussure_label = tk.Label(root, text="Cost of material per pair of shoes:")
-    cout_mat_paire_chaussure_label.grid(row=8, column=0)
-    cout_mat_paire_chaussure_entry = tk.Entry(root)
-    cout_mat_paire_chaussure_entry.insert(tk.END, default_values["cout_mat_paire_chaussure"]) 
-    cout_mat_paire_chaussure_entry.grid(row=8, column=1)
+    create_cout_mat_paire_chaussure_entries(nb)
 
     heures_travail_paire_chaussure_label = tk.Label(root, text="Number of hours of work per pair of shoes:")
-    heures_travail_paire_chaussure_label.grid(row=9, column=0)
+    heures_travail_paire_chaussure_label.grid(row=10+2*nb, column=0)
     heures_travail_paire_chaussure_entry = tk.Entry(root)
     heures_travail_paire_chaussure_entry.insert(tk.END, default_values["heures_travail_paire_chaussure"]) 
-    heures_travail_paire_chaussure_entry.grid(row=9, column=1)
-
-    demande_par_mois_label = tk.Label(root, text="Demand per month:")
-    demande_par_mois_label.grid(row=10, column=0)
-    demande_par_mois_entry = tk.Entry(root)
-    demande_par_mois_entry.insert(tk.END, default_values["demande_par_mois"]) 
-    demande_par_mois_entry.grid(row=10, column=1)
+    heures_travail_paire_chaussure_entry.grid(row=10+2*nb, column=1)
+    
+    create_demand_entries(nb)
 
     stock_init_label = tk.Label(root, text="Initial stock:")
-    stock_init_label.grid(row=11, column=0)
+    stock_init_label.grid(row=12+3*nb, column=0)
     stock_init_entry = tk.Entry(root)
     stock_init_entry.insert(tk.END, default_values["stock_init"]) 
-    stock_init_entry.grid(row=11, column=1)
+    stock_init_entry.grid(row=12+3*nb, column=1)
 
     solve_button = tk.Button(root, text="Solve", command=solve_optimization)
-    solve_button.grid(row=14, columnspan=2)
+    solve_button.grid(row=15+3*nb, columnspan=2)
 
     result_text = tk.Text(root, height=5, width=50, wrap=tk.WORD)
-    result_text.grid(row=15, columnspan=4)
+    result_text.grid(row=16+3*nb, columnspan=4)
 
 def nombre_mois():
     try:
         nb_mois = int(nb_mois_entry.get())
-
         # Validate input value
         if nb_mois <= 0 or nb_mois > 12:
             raise ValueError("Number of months must be between 1 and 12.")
-
         return nb_mois
     except ValueError as error:
         messagebox.showerror("Error", str(error))
         return None
 
-root = tk.Tk()
+root = tkb.Window(themename="morph")
+
 root.title("ChausseTous Entreprise Production Optimization")
+root.geometry("400x200+800+200")
+
+title_label = tk.Label(root, text="")
+title_label.pack(pady=20)
+
 nb_mois = 1
 nb_mois_label = tk.Label(root, text="Number of months:")
-nb_mois_label.grid(row=0, column=0)
 nb_mois_entry = tk.Entry(root)
 nb_mois_entry.insert(tk.END, nb_mois)  
-nb_mois_entry.grid(row=0, column=1)
 
+# Center label and entry horizontally
+nb_mois_label.pack(side=tk.TOP, anchor=tk.CENTER)
+nb_mois_entry.pack(side=tk.TOP, anchor=tk.CENTER)
+
+# Center button horizontally and vertically
 solve_button = tk.Button(root, text="Continue Solving", command=pl2)
-solve_button.grid(row=14, columnspan=2)
+solve_button.pack(pady=20)
+solve_button.pack(side=tk.TOP, anchor=tk.CENTER)
 
 root.mainloop()
 
