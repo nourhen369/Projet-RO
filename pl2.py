@@ -290,8 +290,5 @@ solve_button = tk.Button(root, text="Continue Solving", command=pl2)
 solve_button.pack(pady=20)
 solve_button.pack(side=tk.TOP, anchor=tk.CENTER)
 
-scrollbar = Scrollbar(root)
-scrollbar.pack(side= "right", fill="both")
-
 root.mainloop()
 
