@@ -1,8 +1,9 @@
 import tkinter as tk
 from tkinter import *
 import ttkbootstrap as tkb
-import pl1
+import pl1, pl3
 from pl1 import Exo1
+from pl3 import Exo3
 
 
 # Define a function to create and pack a problem frame
@@ -27,6 +28,9 @@ def solve_problem(problem_id):
         import pl2 
     if problem_id == 4:
         import pl4 
+    if problem_id == 3:
+        exo3 = Exo3(tk.Toplevel())
+        exo3.root.mainloop()
 
 # Initialize the main window
 window = tkb.Window(themename="darkly")
