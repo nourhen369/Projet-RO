@@ -170,36 +170,32 @@ def pl2():
             # Update the model to integrate new variables
             model.update
 
-            # Constraints
             for i in range(nb):
-                # les heures supplémentaires
-                model.addConstr(int(NHS[i].get()) <= prix_heure_supp*int(NO[i].get()))
-                # la production et la demande
-                model.addConstr(int(S[i].get()) + int(NCH[i].get()) >= int(demande[i].get()))
-                # la production et les heures supp
-                if(int(NHS[i].get()) + int(NO[i].get())*nb_heures_travail):
-                    model.addConstr(int(NCH[i].get()) <= (1/nb_heures_travail)*(int(NHS[i].get()) + int(NO[i].get())*nb_heures_travail))
-                if(i>0):
-                    # effectif
-                    model.addConstr(int(NO[i].get()) == int(NO[i-1].get()) + int(NOR[i].get()) - int(NOL[i].get()))
-                    # stock
-                    model.addConstr(int(S[i].get()) == int(S[i-1].get()) + int(NCH[i].get()) - int(demande[i].get()))     
-            # contraintes de signe
-            model.addConstrs((S[t] >= 0 for t in range(nb_mois)))
-            model.addConstrs((NO[t] >= 0 for t in range(nb_mois)))
-            model.addConstrs((NOR[t] >= 0 for t in range(nb_mois)))
-            model.addConstrs((NOL[t] >= 0 for t in range(nb_mois)))
-            model.addConstrs((NHS[t] >= 0 for t in range(nb_mois)))
+                if i > 0:
+                    model.addConstr(ouvriers_dispo[i]==ouvriers_dispo[i-1]+ouvriers_rec[i]-ouvriers_lic[i])
+                    model.addConstr(stock[i]==stock[i-1]+paires_chaussures[i-1]-demande[i-1])
+                else:
+                    model.addConstr(ouvriers_dispo[i] == int(NO[0].get()))
+                    model.addConstr(stock[i] == int(S[0].get()))
+                model.addConstr(heures_sup[i] <= 20*ouvriers_dispo[i])
+                model.addConstr(stock[i] + paires_chaussures[i] >= int(demande[i].get()))
+                model.addConstr(paires_chaussures[i]<=(1/nb_heures_travail)*(heures_sup[i]+ouvriers_dispo[i]*160))
+
+            model.addConstrs((stock[t] >= 0 for t in range(nb_mois)))
+            model.addConstrs((ouvriers_dispo[t] >= 0 for t in range(nb_mois)))
+            model.addConstrs((ouvriers_rec[t] >= 0 for t in range(nb_mois)))
+            model.addConstrs((ouvriers_lic[t] >= 0 for t in range(nb_mois)))
+            model.addConstrs((heures_sup[t] >= 0 for t in range(nb_mois)))
 
             # Objective Function
             model.setObjective(
                 gp.quicksum(
-                    S[t] * float(cout_stock_chaussures[i].get()) +
-                    NOR[t] * float(cout_recrutement_ouvrier) +
-                    NOL[t] * float(cout_licenciement_ouvrier) +
-                    NHS[t] * float(prix_heure_supp) +
-                    NCH[t] * float(cout_mat_paire_chaussure[i].get()) +
-                    NO[t] * float(salaires[i].get())
+                    stock[t] * float(cout_stock_chaussures[i].get()) +
+                    ouvriers_rec[t] * float(cout_recrutement_ouvrier) +
+                    ouvriers_lic[t] * float(cout_licenciement_ouvrier) +
+                    heures_sup[t] * float(prix_heure_supp) +
+                    paires_chaussures[t] * float(cout_mat_paire_chaussure[i].get()) +
+                    ouvriers_lic[t] * float(salaires[i].get())
                     for t in range(nb)
                 ),
                 gp.GRB.MINIMIZE)
