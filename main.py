@@ -26,11 +26,11 @@ def solve_problem(problem_id):
         exo1.root.mainloop()
     if problem_id == 2:
         import pl2 
-    if problem_id == 4:
-        import pl4 
     if problem_id == 3:
         exo3 = Exo3(tk.Toplevel())
         exo3.root.mainloop()
+    if problem_id == 4:
+        import pl4 
 
 # Initialize the main window
 window = tkb.Window(themename="darkly")

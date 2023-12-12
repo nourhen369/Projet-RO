@@ -5,6 +5,7 @@ from gurobipy import GRB
 import ttkbootstrap as tkb
 
 def pl2():
+############################# 1ere colonne #############################
     def create_heures_sup_entries(nb_mois):
         heures_sup_entries = []
         for i in range(nb_mois):
@@ -14,7 +15,7 @@ def pl2():
             entry.insert(tk.END, default_values["heures_sup"]) 
             entry.grid(row=2+i, column=1)
             heures_sup_entries.append(entry)
-        return heures_sup_entries    
+        return heures_sup_entries  
     def create_nb_chaussures_entries(nb_mois):
         nb_chaussures_entries = []
         for i in range(nb_mois):
@@ -76,6 +77,13 @@ def pl2():
             entry.grid(row=2+i+6*nb_mois, column=1)
             demand_entries.append(entry)
         return demand_entries   
+    def create_cout_heure_supp():
+        cout_label = tk.Label(root, text="Cout d'une heure supplémentaire:")
+        cout_label.grid(row=2, column=4, sticky="w")
+        cout_entry = tk.Entry(root)
+        cout_entry.insert(tk.END, default_values["cout_recrutement_ouvrier"]) 
+        cout_entry.grid(row=2, column=5)
+        return cout_entry
     def create_cout_stockage_paire_chaussure_entries(nb_mois):
         cout_stockage_paire_chaussure_entries = []
         for i in range(nb_mois):
@@ -96,6 +104,20 @@ def pl2():
             entry.grid(row=3+nb+i, column=5)
             salaires_entries.append(entry)
         return salaires_entries  
+    def create_cost_rec():
+        recrutement_par_mois_label = tk.Label(root, text="Couts de recruitment:")
+        recrutement_par_mois_label.grid(row=3+2*nb, column=4, sticky="w")
+        recrutement_par_mois_entry = tk.Entry(root)
+        recrutement_par_mois_entry.insert(tk.END, default_values["cout_recrutement_ouvrier"]) 
+        recrutement_par_mois_entry.grid(row=3+2*nb, column=5)
+        return recrutement_par_mois_entry
+    def create_cost_lic():
+        licenciement_par_mois_label = tk.Label(root, text="Couts de licenciement:")
+        licenciement_par_mois_label.grid(row=4+2*nb, column=4, sticky="w")
+        licenciement_par_mois_entry = tk.Entry(root)
+        licenciement_par_mois_entry.insert(tk.END, default_values["demande_par_mois"]) 
+        licenciement_par_mois_entry.grid(row=4+2*nb, column=5)
+        return licenciement_par_mois_entry
     def create_cout_mat_paire_chaussure_entries(nb_mois):
         cout_mat_paire_chaussure_entries = []
         for i in range(nb_mois):
@@ -106,18 +128,23 @@ def pl2():
             entry.grid(row=8+nb+i, column=1)
             cout_mat_paire_chaussure_entries.append(entry)
         return cout_mat_paire_chaussure_entries      
+    def create_nb_heures_travail_par_ouvrier():
+        working_hours_par_mois_label = tk.Label(root, text="Nombre d'heures de travail pour chaque employé:")
+        working_hours_par_mois_label.grid(row=5+2*nb, column=4, sticky="w")
+        working_hours_par_mois_entry = tk.Entry(root)
+        working_hours_par_mois_entry.insert(tk.END, default_values["nb_heures_travail_par_ouvrier"]) 
+        working_hours_par_mois_entry.grid(row=5+2*nb, column=5)
+        return working_hours_par_mois_entry
     
     def solve_optimization():
         try: 
             # Create a new optimization model
             model = gp.Model("ProductionOptimization")
-
             # Decision Variables
             NHS = create_heures_sup_entries(nb)
             NCH = create_nb_chaussures_entries(nb)
             NOR = create_nb_ouv_rec_entries(nb)
             NOL = create_nb_ouv_lic_entries(nb)
-
             # Variables auxilieres
             S = create_stock_entries(nb)
             NO = create_nb_ouvriers_init_entries(nb)
@@ -125,35 +152,58 @@ def pl2():
             # Parameters
             cout_stock_chaussures = create_cout_stockage_paire_chaussure_entries(nb)
             salaires = create_salaires_entries(nb)
-            prix_heure_supp = float(demande_par_mois_entry.get())
-            cout_recrutement_ouvrier = float(recrutement_par_mois_entry.get())
-            cout_licenciement_ouvrier = float(licenciement_par_mois_entry.get())
+            prix_heure_supp = float(create_cout_heure_supp().get())
+            cout_recrutement_ouvrier = float(create_cost_rec().get())
+            cout_licenciement_ouvrier = float(create_cost_lic().get())
             cout_mat_paire_chaussure = create_cout_mat_paire_chaussure_entries(nb)
             demande = create_demand_entries(nb)
-            nb_heures_travail = int(working_hours_par_mois_entry.get())
-
-            c = []
-            for i in range(nb):
-                c.append(float(NHS[i].get()) * prix_heure_supp + float(salaires[i].get()) * float(NO[i].get()) + float(cout_stock_chaussures[i].get()) * float(S[i].get()) + float(cout_mat_paire_chaussure[i].get()) * float(NCH[i].get()) + float(cout_recrutement_ouvrier) * float(NOR[i].get()) + float(cout_licenciement_ouvrier) * float(NOL[i].get()))
-            ct = sum(c)
-
-            # Objective Function
-            model.setObjective(ct, gp.GRB.MINIMIZE)
+            nb_heures_travail = int(create_nb_heures_travail_par_ouvrier().get())
             
+            # Ajoutez les variables de décision au modèle
+            heures_sup = {t: model.addVar(vtype=gp.GRB.INTEGER, name=f"heures_sup_{t}") for t in range(nb_mois)}
+            paires_chaussures = {t: model.addVar(vtype=gp.GRB.INTEGER, name=f"paires_chaussures_{t}") for t in range(nb_mois)}
+            ouvriers_rec = {t: model.addVar(vtype=gp.GRB.INTEGER, name=f"ouvriers_rec_{t}") for t in range(nb_mois)}
+            ouvriers_lic = {t: model.addVar(vtype=gp.GRB.INTEGER, name=f"ouvriers_lic_{t}") for t in range(nb_mois)}
+            ouvriers_dispo = {t: model.addVar(vtype=gp.GRB.INTEGER, name=f"ouvriers_dispo_{t}") for t in range(nb_mois)}
+            stock = {t: model.addVar(vtype=gp.GRB.INTEGER, name=f"stock_{t}") for t in range(nb_mois)}
+
+            # Update the model to integrate new variables
+            model.update
+
             # Constraints
             for i in range(nb):
                 # les heures supplémentaires
-                model.addConstr(float(NHS[i].get()) <= prix_heure_supp * float(NO[i].get()))
+                model.addConstr(int(NHS[i].get()) <= prix_heure_supp*int(NO[i].get()))
                 # la production et la demande
                 model.addConstr(int(S[i].get()) + int(NCH[i].get()) >= int(demande[i].get()))
                 # la production et les heures supp
-                model.addConstr(int(NCH[i].get()) <= 1/(nb*(float(NHS[i].get()) + float(NO[i].get())*nb_heures_travail)))
+                if(int(NHS[i].get()) + int(NO[i].get())*nb_heures_travail):
+                    model.addConstr(int(NCH[i].get()) <= (1/nb_heures_travail)*(int(NHS[i].get()) + int(NO[i].get())*nb_heures_travail))
                 if(i>0):
                     # effectif
-                    model.addConstr(float(NO[i].get()) == float(NO[i-1].get()) + float(NOR[i].get()) - float(NOL[i].get()))
+                    model.addConstr(int(NO[i].get()) == int(NO[i-1].get()) + int(NOR[i].get()) - int(NOL[i].get()))
                     # stock
-                    model.addConstr(int(S[i].get()) == int(S[i-1].get()) + int(NCH[i].get()) - int(demande[i].get()))
+                    model.addConstr(int(S[i].get()) == int(S[i-1].get()) + int(NCH[i].get()) - int(demande[i].get()))     
+            # contraintes de signe
+            model.addConstrs((S[t] >= 0 for t in range(nb_mois)))
+            model.addConstrs((NO[t] >= 0 for t in range(nb_mois)))
+            model.addConstrs((NOR[t] >= 0 for t in range(nb_mois)))
+            model.addConstrs((NOL[t] >= 0 for t in range(nb_mois)))
+            model.addConstrs((NHS[t] >= 0 for t in range(nb_mois)))
 
+            # Objective Function
+            model.setObjective(
+                gp.quicksum(
+                    S[t] * float(cout_stock_chaussures[i].get()) +
+                    NOR[t] * float(cout_recrutement_ouvrier) +
+                    NOL[t] * float(cout_licenciement_ouvrier) +
+                    NHS[t] * float(prix_heure_supp) +
+                    NCH[t] * float(cout_mat_paire_chaussure[i].get()) +
+                    NO[t] * float(salaires[i].get())
+                    for t in range(nb)
+                ),
+                gp.GRB.MINIMIZE)
+            
             # Solve the model
             model.optimize()
 
@@ -170,19 +220,12 @@ def pl2():
                     print(f"\tNombre des recrutés: {NOR[i].x:.0f}")
                     print(f"\tNombre des licencés: {NOL[i].x:.0f}")
                     print(f"\tStock vers la fin du mois: {S[i].x:.2f}")
-
-                # Display additional relevant information
-                print(f"Cout total des heures supplémentaires: {sum(c) - sum(salaires)}")
-                print(f"Cout de recrutement: {sum([float(cout_recrutement_ouvrier) * float(NOR[i].x) for i in range(nb)])}")
-                print(f"Cout de licenciement: {sum([float(cout_licenciement_ouvrier) * float(NOL[i].x) for i in range(nb)])}")
-
             else:
                 result_text.delete(1.0, tk.END)
                 result_text.insert(tk.END, "L'optimisation n'a pas convergé")
                 messagebox.showwarning("Warning", "Le modèle n’a pas pu être résolu de manière optimale.")
         except ValueError:
             messagebox.showerror("Error", "Veuillez saisir des valeurs numériques valides.")
-
 
     # Create a Tkinter window
     root = tk.Tk()
@@ -224,33 +267,13 @@ def pl2():
     create_nb_ouvriers_init_entries(nb)
     create_demand_entries(nb)
 ########################
-    # create the entry of the cost of an additional hour
-    demande_par_mois_label = tk.Label(root, text="Cout d'une heure supplémentaire:")
-    demande_par_mois_label.grid(row=2, column=4, sticky="w")
-    demande_par_mois_entry = tk.Entry(root)
-    demande_par_mois_entry.insert(tk.END, default_values["cout_recrutement_ouvrier"]) 
-    demande_par_mois_entry.grid(row=2, column=5)
+    create_cout_heure_supp()
     create_cout_stockage_paire_chaussure_entries(nb)
     create_salaires_entries(nb)
-    # create the entry of "frais de recrutement"
-    recrutement_par_mois_label = tk.Label(root, text="Couts de recruitment:")
-    recrutement_par_mois_label.grid(row=3+2*nb, column=4, sticky="w")
-    recrutement_par_mois_entry = tk.Entry(root)
-    recrutement_par_mois_entry.insert(tk.END, default_values["cout_recrutement_ouvrier"]) 
-    recrutement_par_mois_entry.grid(row=3+2*nb, column=5)
-    # create the entry of  "frais de licenciement"
-    licenciement_par_mois_label = tk.Label(root, text="Couts de licenciement:")
-    licenciement_par_mois_label.grid(row=4+2*nb, column=4, sticky="w")
-    licenciement_par_mois_entry = tk.Entry(root)
-    licenciement_par_mois_entry.insert(tk.END, default_values["demande_par_mois"]) 
-    licenciement_par_mois_entry.grid(row=4+2*nb, column=5)
-    # create the entry of total working hours per month
-    working_hours_par_mois_label = tk.Label(root, text="Nombre d'heures de travail pour chaque employé:")
-    working_hours_par_mois_label.grid(row=5+2*nb, column=4, sticky="w")
-    working_hours_par_mois_entry = tk.Entry(root)
-    working_hours_par_mois_entry.insert(tk.END, default_values["nb_heures_travail_par_ouvrier"]) 
-    working_hours_par_mois_entry.grid(row=5+2*nb, column=5)
-
+    create_cost_rec()
+    create_cost_lic()
+    create_nb_heures_travail_par_ouvrier()
+    
     solve_button = tk.Button(root, text="Résoudre", command=solve_optimization)
     solve_button.grid(row=7+2*nb, column=4)
 

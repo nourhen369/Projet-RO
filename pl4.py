@@ -73,7 +73,6 @@ def create_main_interface(num_regions):
  root.title("Bank Branches Optimization")
 
 
-
 # Default values for parameters
  default_values = {
     "B": 2000000,
