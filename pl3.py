@@ -92,7 +92,6 @@ class Exo3:
         button_frame = tk.Frame(self.root, bg='#2E2E2E')
         button_frame.pack(pady=10)
 
-        ttk.Button(button_frame, text="Menu Principale", command=self.show_menu, style='TButton').pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="Valeurs par défauts", command=self.default_values, style='TButton').pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="Reset", command=self.reset_values, style='TButton').pack(side=tk.LEFT, padx=5)
 
@@ -143,9 +142,6 @@ class Exo3:
         
         self.ct1.delete(0, tk.END)
         self.ct2.delete(0, tk.END)
-
-    def show_menu(self):
-        self.result_label.config(text="Menu Principale clicked")
 
     def default_values(self):
         default_table_values_list = [
