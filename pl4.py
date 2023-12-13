@@ -1,196 +1,182 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import Label, Entry, Button, Checkbutton, Toplevel
 import gurobipy as gp
 from gurobipy import GRB
-import main
-import os
+from itertools import product
+import subprocess
+import sys
 
-result_text = None 
-def create_main_interface(num_regions):   
- def solve_optimization():
-    try:
-        
-        budget = float(budget_entry.get())
-        agency_cost = float(agency_cost_entry.get())
-        dab_cost = float(dab_cost_entry.get())
-        coeff_a = float(coeff_a_entry.get())
-        coeff_b = float(coeff_b_entry.get())
-        coeff_c = float(coeff_c_entry.get())
+def show_menu():
+    # Close the current Tkinter window or GUI
+    root.destroy()  # Assuming 'root' is your Tkinter window instance
 
-        # Retrieve population data from the Entry widgets and parse them into a list
-        population_list = []
-        for i in range(num_regions):
-            region_population = float(population_entries[i].get())
-            population_list.append(region_population)
-
-        # Retrieve adjacency matrix values from the Entry widgets
-        adjacency_matrix_values = []
-        for i in range(num_regions):
-            row_values = []
-            for j in range(num_regions):
-                value = int(adjacency_entries[i][j].get())
-                row_values.append(value)
-            adjacency_matrix_values.append(row_values)
-
-        # Create a new optimization model
-        model = gp.Model("BankBranchesOptimization")
-
-        # Decision Variables
-        x = model.addVars(num_regions, vtype=GRB.BINARY, name="x")  # Binary decision variables for agencies
-
-        # Objective Function
-        obj = gp.LinExpr()
-        for i in range(num_regions):
-            sum_neighboring_population = sum(adjacency_matrix_values[i][j] * population_list[j] for j in range(num_regions))
-            obj += x[i] * (coeff_a * population_list[i] + coeff_b * sum_neighboring_population) + coeff_c * population_list[i]
-
-        model.setObjective(obj, sense=GRB.MAXIMIZE)
-
-        # Constraints
-        model.addConstr(sum(agency_cost * x[i] for i in range(num_regions)) + sum(dab_cost * x[i] for i in range(num_regions)) <= budget, "BudgetConstraint")
-
-        # Solve the model
-        model.optimize()
-
-        # Display the optimal solution or relevant information
-        if model.status == GRB.OPTIMAL:
-            optimal_solution = "Optimal solution found:\n"
-            for i in range(num_regions):
-                if x[i].x > 0.5:
-                    optimal_solution += f"Open agency in region {i + 1}\n"
-            optimal_solution += f"Total number of clients served: {model.objVal}"
-            result_text.delete(1.0, tk.END)
-            result_text.insert(tk.END, optimal_solution)
-        else:
-            result_text.delete(1.0, tk.END)
-            result_text.insert(tk.END, "Optimization did not converge")
-
-    except ValueError:
-        messagebox.showerror("Error", "Please enter valid numeric values.")
-
-# Create a Tkinter window
- root = tk.Tk()
- root.title("Bank Branches Optimization")
+    # Run the "main.py" script
+    subprocess.run([sys.executable, 'main.py'])
 
 
-# Default values for parameters
- default_values = {
-    "B": 2000000,
-    "K": 500000,
-    "D": 20000,
-    "a": 5,
-    "b": 1,
-    "c": 2
- }
+def get_binary_matrix_values(entries_matrix):
+    binary_matrix_values = []
+    for row in entries_matrix:
+        # Ensure the Entry widget is not destroyed before retrieving its value
+        row_values = []
+        for entry in row:
+            if entry.winfo_exists():
+                row_values.append(int(entry.get()))
+            else:
+                # Handle the case where the Entry widget is destroyed
+                row_values.append(0)  # Or any default value you prefer
+        binary_matrix_values.append(row_values)
 
-# GUI elements to input parameters
- budget_label = tk.Label(root, text="Budget:")
- budget_label.grid(row=0, column=0)
- budget_entry = tk.Entry(root)
- budget_entry.insert(tk.END, default_values["B"])  # Set default value for Budget
- budget_entry.grid(row=0, column=1)
+    print("Binary Matrix of Neighboring Regions:")
+    for row in binary_matrix_values:
+        print(row)
 
- agency_cost_label = tk.Label(root, text="Agency Cost:")
- agency_cost_label.grid(row=1, column=0)
- agency_cost_entry = tk.Entry(root)
- agency_cost_entry.insert(tk.END, default_values["K"])  # Set default value for Agency Cost
- agency_cost_entry.grid(row=1, column=1)
+    return binary_matrix_values
 
- dab_cost_label = tk.Label(root, text="DAB Cost:")
- dab_cost_label.grid(row=2, column=0)
- dab_cost_entry = tk.Entry(root)
- dab_cost_entry.insert(tk.END, default_values["D"])  # Set default value for DAB Cost
- dab_cost_entry.grid(row=2, column=1)
+def pl_4():
+    global entries_matrix, populations, B, K, D
 
- coeff_a_label = tk.Label(root, text="Coefficient a (%):")
- coeff_a_label.grid(row=3, column=0)
- coeff_a_entry = tk.Entry(root)
- coeff_a_entry.insert(tk.END, default_values["a"])  # Set default value for Coefficient a
- coeff_a_entry.grid(row=3, column=1)
+    num_regions = len(entries_matrix)
+    a_percent = 0.05
+    c_percent = 0.02
+    b_percent = 0.01
 
- coeff_b_label = tk.Label(root, text="Coefficient b (%):")
- coeff_b_label.grid(row=4, column=0)
- coeff_b_entry = tk.Entry(root)
- coeff_b_entry.insert(tk.END, default_values["b"])  # Set default value for Coefficient b
- coeff_b_entry.grid(row=4, column=1)
+    A = get_binary_matrix_values(entries_matrix)
 
- coeff_c_label = tk.Label(root, text="Coefficient c (%):")
- coeff_c_label.grid(row=5, column=0)
- coeff_c_entry = tk.Entry(root)
- coeff_c_entry.insert(tk.END, default_values["c"])  # Set default value for Coefficient c
- coeff_c_entry.grid(row=5, column=1)
+    model = gp.Model("Localisation_Agences_DAB")
+    x = model.addVars(num_regions, vtype=GRB.BINARY, name="x")
+    y = model.addVars(num_regions, vtype=GRB.BINARY, name="y")
 
- population_label = tk.Label(root, text="Population for each region:")
- population_label.grid(row=6, column=0)
+    model.setObjective(gp.quicksum(a_percent * x[i] * populations[i] + c_percent * y[i] * populations[i] + b_percent * x[i] * gp.quicksum(populations[j] * A[i][j] for j in range(num_regions)) for i in range(num_regions)), sense=GRB.MAXIMIZE)
 
-
-
-# Create Entry widgets for population input for each region with default values
- population_entries = []
- for i in range(num_regions):
-    label = tk.Label(root, text=f"Region {i+1}:")
-    label.grid(row=6 + i, column=0)
-    entry = tk.Entry(root)
-    entry.grid(row=6 + i, column=1)
-    population_entries.append(entry)
-
- adjacency_label = tk.Label(root, text="Adjacency Matrix (0 or 1):")
- adjacency_label.grid(row=6, column=2)
-
-# Default adjacency matrix
-
-# Create Entry widgets for adjacency matrix with default values
- adjacency_entries = []
- for i in range(num_regions):
-    row_entries = []
     for j in range(num_regions):
-        value = tk.StringVar()
-        entry = tk.Entry(root, width=3, textvariable=value)
-        entry.grid(row=6 + i, column=3 + j)
-        row_entries.append(entry)
-    adjacency_entries.append(row_entries)
+     model.addConstr(gp.quicksum(A[i][j] * x[i] for i in range(num_regions)) + y[j] >= 1, name=f"contrainte_a_{j}")
 
- solve_button = tk.Button(root, text="Solve", command=solve_optimization)
- solve_button.grid(row=6 + num_regions, columnspan=2)
+    model.addConstr(gp.quicksum((x[i] + x[j]) * A[i][j] for i, j in product(range(num_regions), repeat=2) if i != j) <= 1, name="contrainte_b")
 
- result_text = tk.Text(root, height=5, width=50, wrap=tk.WORD)
- result_text.grid(row=7 + num_regions, columnspan=4)
+    model.addConstr(gp.quicksum(K * x[i] + D * y[i] for i in range(num_regions)) <= B, name="contrainte_c")
+
+    model.optimize()
+
+    # Create a new window to display the results
+    result_window = Toplevel(root)
+    result_window.title("Résultats")
+
+        # Afficher les résultats sur la fenêtre
+    results_label = Label(result_window, text="\n\nRésultats:", font=('Arial', 14, 'bold'))
+    results_label.pack()
+
+    for i in range(num_regions):
+        result_label = Label(result_window, text=f"Region {i + 1}: Agence={int(x[i].x)}, Serveur DAB={int(y[i].x)}", font=('Arial', 12))
+        result_label.pack()
+
+    total_clients_label = Label(result_window, text=f"\nNombre total de clients: {int(model.objVal)}", font=('Arial', 12, 'bold'))
+    total_clients_label.pack()
+def set_pop_values(pop_window):
+    global populations, B, K, D, entry_budget, entry_cout_agence, entry_cout_dab
+
+    B = int(entry_budget.get())
+    K = int(entry_cout_agence.get())
+    D = int(entry_cout_dab.get())
+    populations = [float(entry.get()) for entry in populations]
+    pop_window.destroy()
+def population_interface():
+    global populations, B, K, D, entry_budget, entry_cout_agence, entry_cout_dab
+
+    pop_window = Toplevel(root)
+    pop_window.title("Saisie des populations")
+
+    size = int(entry_regions.get())
+
+    # Titre
+    Label(pop_window, text="Saisie des populations", font=('Arial', 14, 'bold')).grid(row=0, columnspan=2, pady=10)
+
+    populations = []
+    for i in range(size):
+        Label(pop_window, text=f"Population de la région {i + 1}:", font=('Arial', 12)).grid(row=i + 1, column=0, padx=5, pady=5)
+        entry = Entry(pop_window, font=('Arial', 12))
+        entry.grid(row=i + 1, column=1, padx=5, pady=5)
+        populations.append(entry)
+
+    # Bouton de soumission
+    btn_submit = Button(pop_window, text="Submit", command=lambda: set_pop_values(pop_window), font=('Arial', 12),bg='lightgreen')
+    btn_submit.grid(row=size + 2, columnspan=2, pady=10)
+
+def matrix_interface():
+    global entries_matrix
+
+    matrix_window = Toplevel(root)
+    matrix_window.title("Matrice des régions voisines")
+
+    size = int(entry_regions.get())
+
+    # Étiquettes pour les lignes
+    for i in range(size):
+        Label(matrix_window, text=f'R{i + 1}', font=('Arial', 12)).grid(row=i + 1, column=0, padx=5, pady=5)
+
+    # Étiquettes pour les colonnes
+    for j in range(size):
+        Label(matrix_window, text=f'R{j + 1}', font=('Arial', 12)).grid(row=0, column=j + 1, padx=5, pady=5)
+
+    # Utiliser la variable globale entries_matrix
+    entries_matrix = []
+    for i in range(size):
+        row_entries = []
+        for j in range(size):
+            entry = Entry(matrix_window, width=5, font=('Arial', 12))
+            entry.grid(row=i + 1, column=j + 1, padx=5, pady=5)
+            row_entries.append(entry)
+        entries_matrix.append(row_entries)
+
+    # Bouton de soumission
+    btn_submit = Button(matrix_window, text="Submit", command=lambda: matrix_window.destroy(), font=('Arial', 12),bg='lightgreen')
+    btn_submit.grid(row=size + 1, columnspan=size + 1, pady=10)
 
 
- root.mainloop()
+def main_interface():
+    global root, entry_regions, entry_budget, entry_cout_agence, entry_cout_dab
+    root = tk.Tk()
+    root.title("Interface de saisie")
+    
+    Label(root, text="Nombre des régions:", font=('Arial', 12)).grid(row=0, column=0, padx=5, pady=5)
+    entry_regions = Entry(root, font=('Arial', 12))
+    entry_regions.grid(row=0, column=1, padx=5, pady=5)
+    
+    # Séparateur
+   # Label(root, text="(maximum 9 regions)*").grid(row=1, column=0)
+    Label(root, text="").grid(row=2, column=0)
 
-# Your existing code to create the Tkinter window to input the number of regions...
-def get_num_regions():
-    global num_regions_entry
+    Label(root, text="Budget:", font=('Arial', 12)).grid(row=3, column=0, padx=5, pady=5)
+    entry_budget = Entry(root, font=('Arial', 12))
+    entry_budget.grid(row=3, column=1, padx=5, pady=5)
 
-    try:
-        num_regions = int(num_regions_entry.get())
-        if num_regions <= 0:
-            messagebox.showerror("Error", "Please enter a valid positive number of regions.")
-        else:
-            root.destroy()  # Close the current window
-            create_main_interface(num_regions)  # Pass the Entry widget to the function
+    # Séparateur
+    Label(root, text="").grid(row=4, column=0)
 
-    except ValueError:
-        messagebox.showerror("Error", "Please enter a valid numeric value for the number of regions.")
+    Label(root, text="Coût d'une agence:", font=('Arial', 12)).grid(row=5, column=0, padx=5, pady=5)
+    entry_cout_agence = Entry(root, font=('Arial', 12))
+    entry_cout_agence.grid(row=5, column=1, padx=5, pady=5)
 
-# Create a Tkinter window to input the number of regions
-root = tk.Tk()
-root.title("Enter Number of Regions")
+    # Séparateur
+    Label(root, text="").grid(row=6, column=0)
 
-num_regions_label = tk.Label(root, text="Enter the number of regions:")
-num_regions_label.pack()
+    Label(root, text="Coût du DAB:", font=('Arial', 12)).grid(row=7, column=0, padx=5, pady=5)
+    entry_cout_dab = Entry(root, font=('Arial', 12))
+    entry_cout_dab.grid(row=7, column=1, padx=5, pady=5)
 
-num_regions_entry = tk.Entry(root)
-num_regions_entry.pack()
+    # Séparateur
+    Label(root, text="").grid(row=8, column=0)
 
-proceed_button = tk.Button(root, text="Proceed", command=get_num_regions)
-proceed_button.pack()
+    btn_pop_interface = Button(root, text="Saisie des populations", command=population_interface, font=('Arial', 12),bg='lightblue')
+    btn_pop_interface.grid(row=9, columnspan=2, pady=10)
 
-def go_to_homepage():
-    # This function will handle the action when the button is clicked
-   os.system('python3 main.py')
+    btn_matrix_interface = Button(root, text="Matrice des régions voisines", command=matrix_interface, font=('Arial', 12),bg='lightblue')
+    btn_matrix_interface.grid(row=10, columnspan=2, pady=10)
 
-execute_button = tk.Button(root, text="go home", command=go_to_homepage)
-execute_button.pack()
-root.mainloop()
+    btn_solve = Button(root, text="Solve", command=pl_4, font=('Arial', 12),bg='lightgreen')
+    btn_solve.grid(row=11, columnspan=2, pady=10)
+    tk.Button(root, text="Main Menu", command=show_menu).grid(row=11, column=0, padx=5, pady=5)
+    root.mainloop()
+
+# Run the main interface
+main_interface()
