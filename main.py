@@ -1,9 +1,10 @@
 import tkinter as tk
 from tkinter import *
 import ttkbootstrap as tkb
-import pl1, pl3
+import pl1, pl3, pl6
 from pl1 import Exo1
 from pl3 import Exo3
+from pl6 import Exo6
 
 
 # Define a function to create and pack a problem frame
@@ -34,8 +35,8 @@ def solve_problem(problem_id):
     if problem_id == 5:
         import pl5
     if problem_id == 6:
-        import pl6  
-
+        exo6 = Exo6(tk.Toplevel())
+        exo6.root.mainloop()
 # Initialize the main window
 window = tkb.Window(themename="darkly")
 window.title("Projet de recherche opérationnelle")
