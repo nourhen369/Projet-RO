@@ -92,13 +92,9 @@ class Exo3:
         button_frame = tk.Frame(self.root, bg='#2E2E2E')
         button_frame.pack(pady=10)
 
+        ttk.Button(button_frame, text="Résoudre", command=self.resoudre, style='TButton').pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="Valeurs par défauts", command=self.default_values, style='TButton').pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="Reset", command=self.reset_values, style='TButton').pack(side=tk.LEFT, padx=5)
-
-        # Create a new frame for the "Calculate" button and pack it separately
-        calculate_frame = tk.Frame(self.root, bg='#2E2E2E')
-        calculate_frame.pack(pady=5)
-        ttk.Button(calculate_frame, text="Calculate", command=self.run, style='TButton').pack(side=tk.LEFT, padx=5)
 
     def create_result_frame(self):
         # Create a LabelFrame with the 'info' style
@@ -123,10 +119,6 @@ class Exo3:
     def create_result_label(self):
         self.result_label = tk.Label(self.root, text="", bg='#2E2E2E', fg='white')
         self.result_label.pack()
-
-    def calculate_sum(self):
-        total_sum = sum([float(entry.get()) for row in self.entries for entry in row if entry.get().replace('.', '').isdigit()])
-        self.result_label.config(text=f"Total Sum: {total_sum}")
 
     def reset_values(self):
         for row in self.entries:
@@ -161,15 +153,12 @@ class Exo3:
         self.ct2.insert(0, str(2))
         
 
-    def run(self):
+    def resoudre(self):
         try:
-            """ jours_de_conges= np.ones((7,7),dtype=int)
-            for k in range(7):
-                jours_de_conges[k,k] = 0
-                jours_de_conges[k,(k+1)%7] = 0
-            #print(jours_de_conges) """
+            # Creation du modele
+            model = gp.Model("Exo3")
 
-            nb_jrs_travail=int(self.ct1.get())
+            nb_jrs_travail=int(self.ct1.get()) #nombre de jours de travail consecutifs avant congé
             nb_jrs_semaine = 7
             jours_de_conges = np.zeros((nb_jrs_semaine, nb_jrs_semaine), dtype=int)
 
@@ -177,57 +166,45 @@ class Exo3:
                 for j in range(nb_jrs_travail):
                     jours_de_conges[i, (i + j) % nb_jrs_semaine] = 1
 
-            #print(jours_de_conges)
-
             self.jours=[]
             for i, row_entries in enumerate(self.entries):
                 for j, entry in enumerate(row_entries):
                     self.jours.append(int(entry.get()))
 
-            #print(self.jours)
-
-            model = gp.Model("PL3")
-
-            # les variables de décision représentant les employés prenant deux jours de congés à partir du jour i
+            # les variables de décision représentant les employés prenant Y jours de congés à partir du jour i
             x=[]
             for i in range(7):
-                x.append(model.addVar(lb = 0 ,vtype = gp.GRB.INTEGER, name='x'+str(i)))
+                x.append(model.addVar(lb = 0 ,vtype = gp.GRB.INTEGER, name='x'+str(i))) # model.add -> ajouter les var de decision
 
             # la fonction objectif
-            model.setObjective(gp.quicksum(x), gp.GRB.MINIMIZE)
+            model.setObjective(gp.quicksum(x), gp.GRB.MINIMIZE) #gb.quicksum -> faire un calcul lineaire rapide; gb.GRB.MINIMIZE -> minimiser la fct obj
 
             # Contraintes : le nombre d'employé doit être >= au minimum requis pour un tel jour
             for j in range(7):
-                model.addConstr(gp.quicksum(jours_de_conges[:,j] * x) >= self.jours[j])
+                model.addConstr(gp.quicksum(jours_de_conges[:,j] * x) >= self.jours[j]) # jours_de_conges[:, j] retrieves all the elements in the j-th column of the jours_de_conges matrix
 
-            # Resolution du PL
+            # Optimiser le modèle
             model.optimize()
 
-            # Affichage des résultats
+            # Une liste qui contient le nb des employes qui sont en congés pendant chaque jour
             nb = []
             for i,v in enumerate(model.getVars()):
-                nb.append(int(v.x))
-            
-            #result = ""
+                nb.append(int(v.x)) # v.x retrieves the solution value of the variable v after the optimization has been performed
+
             result=[]
             for i in range(7):
-                val = model.objVal - ( nb[i] + nb[i-1] )
-                #result += "%s: %d employés.\n" % (self.jourDeLaSemaine[i],val)
+                val = model.objVal - ( nb[i] + nb[i-1] ) #mode.objVal -> represents the optimal value of the objective function after solving an optimization model
                 result.append(int(val))
-            #result += "Nombre d'employes : " + str(int(model.objVal))
-            #print(result)
 
             # Clear existing items in the table
             for item in self.table.get_children():
                 self.table.delete(item)
 
-            # Insert values into the table
+            # Insert values ( resultats ) into the table
             for day, nombre in zip(self.jourDeLaSemaine, result):
                 self.table.insert('', 'end', values=[day, nombre])
 
             self.result_label.config(text=f"Nombre total des employés : {str(int(model.objVal))}")
-
-            #return result
 
         except Exception as e:
             # Display a separate warning window for the exception

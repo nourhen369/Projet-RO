@@ -145,7 +145,7 @@ def pl2():
             NCH = create_nb_chaussures_entries(nb)
             NOR = create_nb_ouv_rec_entries(nb)
             NOL = create_nb_ouv_lic_entries(nb)
-            # Variables auxilieres
+            
             S = create_stock_entries(nb)
             NO = create_nb_ouvriers_init_entries(nb)
 

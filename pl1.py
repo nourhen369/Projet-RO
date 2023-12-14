@@ -8,7 +8,7 @@ class Exo1:
     def __init__(self, root):
         self.root = root
         self.root.title("PL 1")
-        self.root.geometry("800x600")
+        self.root.geometry("800x650")
         self.root.resizable(False, False)
         self.root.geometry("+350+100")
 
@@ -16,11 +16,11 @@ class Exo1:
         self.create_table_frame()
         self.create_constraints_constants_frame()
         self.create_buttons_frame()
-        self.create_result_label()
 
     def setup_styles(self):
         style = ttk.Style(theme='darkly')
 
+    # Ajouter un frame qui contient le tableau, ou on peut entrer et modifier les valeurs
     def create_table_frame(self):
         self.table_frame = tk.Frame(self.root, bg='#2E2E2E')
         self.table_frame.pack(padx=10, pady=10)
@@ -49,13 +49,14 @@ class Exo1:
                 entry_style.configure('Black.TEntry', foreground='white')
                 entry.configure(style='Black.TEntry')
 
+    # Ajouter un frame qui contient les inputs pour les contraintes et les constantes, ou on peut entrer et modifier les valeurs
     def create_constraints_constants_frame(self):
         constraints_constants_frame = tk.Frame(self.root, bg='#2E2E2E')
         constraints_constants_frame.pack(padx=10, pady=(0, 20))  # Add more space at the bottom
 
         self.create_constraints_frame(constraints_constants_frame)
         
-        # Add vertical separator
+        # Ajouter un seperateur vertical pour separer les contraintes et les constantes
         ttk.Separator(constraints_constants_frame, orient=tk.VERTICAL).grid(row=1, column=2, rowspan=6, sticky='ns', padx=(20,20))
 
         self.create_constants_frame(constraints_constants_frame)
@@ -64,7 +65,7 @@ class Exo1:
         label = tk.Label(parent_frame, text='Les contraintes', bg='#2E2E2E', fg='white')
         label.grid(row=0, column=0, padx=2, pady=20, sticky='nsew', columnspan=2)
 
-        constraint_labels = ["Main d'oeuvre <", "Eau d'irrigation <", "Temps machines <"]
+        constraint_labels = ["Main d'oeuvre <", "Eau d'irrigation <", "Temps machines <", "Zone agricole <"]
         self.constraint_entries = []
 
         for i, label_text in enumerate(constraint_labels):
@@ -79,7 +80,7 @@ class Exo1:
         label = tk.Label(parent_frame, text='Les constantes', bg='#2E2E2E', fg='white')
         label.grid(row=0, column=3, padx=2, pady=20, sticky='nsew', columnspan=2)
 
-        constant_labels = ["Zone Agricole", "Cout heure machine", "Cout metre cube eau"]
+        constant_labels = ["Cout heure machine", "Cout metre cube eau"]
         self.constant_entries = []
 
         for i, label_text in enumerate(constant_labels):
@@ -95,33 +96,15 @@ class Exo1:
         button_frame = tk.Frame(self.root, bg='#2E2E2E')
         button_frame.pack(pady=10)
 
-        ttk.Button(button_frame, text="Menu Principale", command=self.show_menu, style='TButton').pack(side=tk.LEFT, padx=5)
-        ttk.Button(button_frame, text="Valeurs par défauts", command=self.default_values, style='TButton').pack(side=tk.LEFT, padx=5)
-        ttk.Button(button_frame, text="Reset", command=self.reset_values, style='TButton').pack(side=tk.LEFT, padx=5)
-
-        # Create a new frame for the "Calculate" button and pack it separately
-        calculate_frame = tk.Frame(self.root, bg='#2E2E2E')
-        calculate_frame.pack(pady=5)
-        ttk.Button(calculate_frame, text="Calculate", command=self.run, style='TButton').pack(side=tk.LEFT, padx=5)
-
-
-
-    def create_result_label(self):
-        self.result_label = tk.Label(self.root, text="", bg='#2E2E2E', fg='white')
-        self.result_label.pack()
-
-    def calculate_sum(self):
-        total_sum = sum([float(entry.get()) for row in self.entries for entry in row if entry.get().replace('.', '').isdigit()])
-        self.result_label.config(text=f"Total Sum: {total_sum}")
+        ttk.Button(button_frame, text="Résoudre", command=self.resoudre, style='TButton').pack(side=tk.LEFT, padx=10)
+        ttk.Button(button_frame, text="Valeurs par défauts", command=self.default_values, style='TButton').pack(side=tk.LEFT, padx=10)
+        ttk.Button(button_frame, text="Reset", command=self.reset_values, style='TButton').pack(side=tk.LEFT, padx=10)
 
     def reset_values(self):
         for row in self.entries:
             for entry in row:
                 entry.delete(0, tk.END)
         self.result_label.config(text="")
-
-    def show_menu(self):
-        self.result_label.config(text="Menu Principale clicked")
 
     def default_values(self):
         default_table_values_list = [
@@ -134,8 +117,8 @@ class Exo1:
             [250, 180, 190, 310, 320]
         ]
 
-        default_constraints_values_list = [3000, 25000000, 24000]
-        default_constants_values_list = [1000, 30, 0.1]
+        default_constraints_values_list = [3000, 25000000, 24000, 1000]
+        default_constants_values_list = [30, 0.1]
 
         for i, row_entries in enumerate(self.entries):
             for j, entry in enumerate(row_entries):
@@ -153,15 +136,19 @@ class Exo1:
             constant_entry.delete(0, tk.END)
             constant_entry.insert(0, str(value))
 
-    def run(self):
+    #Le processus d'optmisation
+    def resoudre(self):
         try:
+            # Creation du modele
             model = gp.Model("Exo1")
 
+            # Initialiser des listes (vides) pour stocker toutes les entrées du programme
             self.Rendement, self.Prix_vente, self.main_doeuvre, self.Temps_machine, self.Eau, self.Salaire_annuel, self.Frais_gestion= [], [], [], [], [], [], []
             Attributs = [self.Rendement, self.Prix_vente, self.main_doeuvre, self.Temps_machine, self.Eau, self.Salaire_annuel, self.Frais_gestion]
             Constantes=[]
             Contraintes=[]
 
+            # Extraire les entrees d'utilisateur
             for i, row_entries in enumerate(self.entries):
                 for j, entry in enumerate(row_entries):
                     Attributs[i].append(float(entry.get()))
@@ -173,16 +160,20 @@ class Exo1:
             for i, entry in enumerate(self.constant_entries):
                 Constantes.append(float(entry.get())) 
 
-            zoneAgricole=Constantes[0]
-            coutHeureMachine=Constantes[1]
-            coutEau=Constantes[2]
+            # Extraires les constantes
+            coutHeureMachine=Constantes[0]
+            coutEau=Constantes[1]
 
+            # Extraires les contraintes
             mainOeuvre=Contraintes[0]
             quantiteEau=Contraintes[1]
             tempsMachine=Contraintes[2]
+            zoneAgricole=Contraintes[3]
 
+            # Definir les variables de decision (des entiers): x1,x2,x3,x4,x5
             x = model.addVars(range(5), vtype=gp.GRB.INTEGER, name="x")
 
+            # Saisir la fonction objective
             model.setObjective(gp.quicksum(x[i] * (
                     (self.Rendement[i] * self.Prix_vente[i])
                     - (self.main_doeuvre[i] * self.Salaire_annuel[i])
@@ -191,6 +182,7 @@ class Exo1:
             ) - self.Frais_gestion[i]
                 for i in range(5)), gp.GRB.MAXIMIZE)
 
+            # Saisire les contraintes
             model.addConstr(gp.quicksum((self.main_doeuvre[i] * x[i]) for i in range(5)) <= mainOeuvre)
             model.addConstr(gp.quicksum((self.Temps_machine[i] * x[i]) for i in range(5)) <= tempsMachine)
             model.addConstr(gp.quicksum((self.Eau[i] * x[i]) for i in range(5)) <= quantiteEau)
@@ -198,8 +190,10 @@ class Exo1:
                 model.addConstr(x[i] >= 0)
             model.addConstr(gp.quicksum(x[i] for i in range(5)) <= zoneAgricole)
 
+            # Optimiser les modeles
             model.optimize()
 
+            # Creer une nouvelle fenetre pour afficher les resultat
             result_window = tk.Toplevel(self.root)
             result_window.title("Results")
             result_window.geometry("+500+250")
@@ -216,8 +210,8 @@ class Exo1:
             warning_window = tk.Toplevel(self.root)
             warning_window.title("Warning")
             warning_window.geometry("+500+250")
-            warning_window.configure(bg='red')  # Set the background color to red
-            warning_window.attributes("-alpha", 1)  # Set the alpha channel for transparency
+            warning_window.configure(bg='red') 
+            warning_window.attributes("-alpha", 1) 
             
             label_text = "ERROR OCCURRED!"
             label = tk.Label(warning_window, text=label_text, fg='white', bg='red', font=("Helvetica", 14, "bold"))
@@ -227,9 +221,6 @@ class Exo1:
             label.configure(bg=warning_window.cget('bg'))
 
             print(e)
-
-
-        #print(coutHeureMachine)
 
 
 if __name__ == "__main__":
