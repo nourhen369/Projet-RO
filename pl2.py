@@ -66,7 +66,6 @@ def pl2():
             entry.grid(row=2+i+5*nb_mois, column=1)
             nb_ouvriers_init_entries.append(entry)
         return nb_ouvriers_init_entries 
-############################# 2eme colonne #############################
     def create_demand_entries(nb_mois):
         demand_entries = []
         for i in range(nb_mois):
@@ -77,6 +76,17 @@ def pl2():
             entry.grid(row=2+i+6*nb_mois, column=1)
             demand_entries.append(entry)
         return demand_entries   
+    def create_cout_mat_paire_chaussure_entries(nb_mois):
+        cout_mat_paire_chaussure_entries = []
+        for i in range(nb_mois):
+            cout_mat_paire_chaussure_label = tk.Label(root, text=f"Cout de matières premières au mois {i+1}:")
+            cout_mat_paire_chaussure_label.grid(row=2+8*nb+i, column=0, sticky="w")
+            entry = tk.Entry(root)
+            entry.insert(tk.END, default_values["cout_mat_paire_chaussure"]) 
+            entry.grid(row=2+8*nb+i, column=1)
+            cout_mat_paire_chaussure_entries.append(entry)
+        return cout_mat_paire_chaussure_entries 
+############################# 2eme colonne #############################
     def create_cout_heure_supp():
         cout_label = tk.Label(root, text="Cout d'une heure supplémentaire:")
         cout_label.grid(row=2, column=4, sticky="w")
@@ -117,17 +127,7 @@ def pl2():
         licenciement_par_mois_entry = tk.Entry(root)
         licenciement_par_mois_entry.insert(tk.END, default_values["demande_par_mois"]) 
         licenciement_par_mois_entry.grid(row=4+2*nb, column=5)
-        return licenciement_par_mois_entry
-    def create_cout_mat_paire_chaussure_entries(nb_mois):
-        cout_mat_paire_chaussure_entries = []
-        for i in range(nb_mois):
-            cout_mat_paire_chaussure_label = tk.Label(root, text=f"Cout de matières premières au mois {i+1}:")
-            cout_mat_paire_chaussure_label.grid(row=8+nb+i, column=0, sticky="w")
-            entry = tk.Entry(root)
-            entry.insert(tk.END, default_values["cout_mat_paire_chaussure"]) 
-            entry.grid(row=8+nb+i, column=1)
-            cout_mat_paire_chaussure_entries.append(entry)
-        return cout_mat_paire_chaussure_entries      
+        return licenciement_par_mois_entry     
     def create_nb_heures_travail_par_ouvrier():
         working_hours_par_mois_label = tk.Label(root, text="Nombre d'heures de travail pour chaque employé:")
         working_hours_par_mois_label.grid(row=5+2*nb, column=4, sticky="w")
@@ -170,7 +170,7 @@ def pl2():
             # Update the model to integrate new variables
             model.update
 
-            for i in range(nb):
+            for i in range(nb): 
                 if i > 0:
                     model.addConstr(ouvriers_dispo[i]==ouvriers_dispo[i-1]+ouvriers_rec[i]-ouvriers_lic[i])
                     model.addConstr(stock[i]==stock[i-1]+paires_chaussures[i-1]-demande[i-1])
@@ -269,7 +269,8 @@ def pl2():
     create_cost_rec()
     create_cost_lic()
     create_nb_heures_travail_par_ouvrier()
-    
+    create_cout_mat_paire_chaussure_entries(nb)
+
     solve_button = tk.Button(root, text="Résoudre", command=solve_optimization)
     solve_button.grid(row=7+2*nb, column=4)
 
