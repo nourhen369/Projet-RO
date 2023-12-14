@@ -175,7 +175,6 @@ def main_interface():
 
     btn_solve = Button(root, text="Solve", command=pl_4, font=('Arial', 12),bg='lightgreen')
     btn_solve.grid(row=11, columnspan=2, pady=10)
-    tk.Button(root, text="Main Menu", command=show_menu).grid(row=11, column=0, padx=5, pady=5)
     root.mainloop()
 
 # Run the main interface
