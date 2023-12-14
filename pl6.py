@@ -48,9 +48,9 @@ class Exo6:
 
     def create_table_labels(self):
         self.row_labels = ["Les noueds :   ", "Cout :    "]
-        self.jourDeLaSemaine = ["A->B", "A->C", "B->D", "B->E", "C->B", "C->E", "C->F", "D->E", "E->G", "F->E"]
+        self.noueds = ["A->B", "A->C", "B->D", "B->E", "C->B", "C->E", "C->F", "D->E", "E->G", "F->E"]
 
-        for j, label_text in enumerate(self.jourDeLaSemaine):
+        for j, label_text in enumerate(self.noueds):
             label = tk.Label(self.table_frame, text=label_text, bg='#2E2E2E', fg='white')
             label.grid(row=0, column=j + 1, padx=2, pady=2, sticky='nsew', rowspan=2)
 
