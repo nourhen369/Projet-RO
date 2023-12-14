@@ -31,6 +31,10 @@ def solve_problem(problem_id):
         exo3.root.mainloop()
     if problem_id == 4:
         import pl4 
+    if problem_id == 5:
+        import pl5
+    if problem_id == 6:
+        import pl6  
 
 # Initialize the main window
 window = tkb.Window(themename="darkly")
