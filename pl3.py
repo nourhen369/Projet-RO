@@ -51,6 +51,7 @@ class Exo3:
                 entry_style = ttk.Style()
                 entry_style.configure('Black.TEntry', foreground='white')
                 entry.configure(style='Black.TEntry')
+                entry.bind('<FocusOut>', lambda event, i=i, entry=entry: self.validate_entry(event, i, entry))
 
     def create_constraints_frame(self):
         # Create a frame for constraints
@@ -92,9 +93,10 @@ class Exo3:
         button_frame = tk.Frame(self.root, bg='#2E2E2E')
         button_frame.pack(pady=10)
 
-        ttk.Button(button_frame, text="Résoudre", command=self.resoudre, style='TButton').pack(side=tk.LEFT, padx=5)
-        ttk.Button(button_frame, text="Valeurs par défauts", command=self.default_values, style='TButton').pack(side=tk.LEFT, padx=5)
-        ttk.Button(button_frame, text="Reset", command=self.reset_values, style='TButton').pack(side=tk.LEFT, padx=5)
+        self.resoudre_button = ttk.Button(button_frame, text="Résoudre", command=self.resoudre, style='TButton')
+        self.resoudre_button.pack(side=tk.LEFT, padx=10)
+        ttk.Button(button_frame, text="Valeurs par défauts", command=self.default_values, style='TButton').pack(side=tk.LEFT, padx=10)
+        ttk.Button(button_frame, text="Reset", command=self.reset_values, style='TButton').pack(side=tk.LEFT, padx=10)
 
     def create_result_frame(self):
         # Create a LabelFrame with the 'info' style
@@ -158,13 +160,15 @@ class Exo3:
             # Creation du modele
             model = gp.Model("Exo3")
 
-            nb_jrs_travail=int(self.ct1.get()) #nombre de jours de travail consecutifs avant congé
+            nb_jrs_travail = int(self.ct1.get())  # nombre de jours de travail consecutifs avant congé
             nb_jrs_semaine = 7
             jours_de_conges = np.zeros((nb_jrs_semaine, nb_jrs_semaine), dtype=int)
 
             for i in range(nb_jrs_semaine):
                 for j in range(nb_jrs_travail):
-                    jours_de_conges[i, (i + j) % nb_jrs_semaine] = 1
+                    jours_de_conges[i, (i+j+nb_jrs_semaine-nb_jrs_travail) % nb_jrs_semaine] = 1
+
+            print("Jour de congès: \n", jours_de_conges)
 
             self.jours=[]
             for i, row_entries in enumerate(self.entries):
@@ -222,6 +226,34 @@ class Exo3:
             label.configure(bg=warning_window.cget('bg'))
 
             print(e)
+
+    def validate_entry(self, event, index, entry):
+        try:
+            value = int(entry.get())
+            if value < 0:
+                raise ValueError("Please enter a positive number.")
+            if not value.is_integer():
+                raise ValueError("Please enter a whole number.")
+            else:
+                entry.delete(0, tk.END)
+                entry.insert(0, str(int(value)))
+            self.resoudre_button.config(state=tk.NORMAL)
+        except ValueError:
+            self.resoudre_button.config(state=tk.DISABLED)
+            warning_window = tk.Toplevel(self.root)
+            warning_window.title("Warning")
+            warning_window.geometry("+500+250")
+            warning_window.configure(bg='red')
+            warning_window.attributes("-alpha", 1)
+
+            label_text = "PLEASE ENTER A POSITIVE WHOLE NUMBER!"
+            label = tk.Label(warning_window, text=label_text, fg='white', bg='red', font=("Helvetica", 14, "bold"))
+            label.pack(padx=50, pady=50)
+            label.configure(bg=warning_window.cget('bg'))
+
+            entry.delete(0, tk.END)
+            entry.insert(0, "0")
+
 
 if __name__ == "__main__":
     root = tk.Tk()

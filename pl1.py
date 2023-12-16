@@ -48,6 +48,7 @@ class Exo1:
                 entry_style = ttk.Style()
                 entry_style.configure('Black.TEntry', foreground='white')
                 entry.configure(style='Black.TEntry')
+                entry.bind('<FocusOut>', lambda event, i=i, entry=entry: self.validate_entry(event, i, entry))
 
     # Ajouter un frame qui contient les inputs pour les contraintes et les constantes, ou on peut entrer et modifier les valeurs
     def create_constraints_constants_frame(self):
@@ -75,6 +76,7 @@ class Exo1:
             entry = ttk.Entry(parent_frame, width=8, style='Dark.TEntry')
             entry.grid(row=i + 1, column=1, padx=2, pady=2, sticky='nsew')
             self.constraint_entries.append(entry)
+            entry.bind('<FocusOut>', lambda event, i=i, entry=entry: self.validate_entry(event, i, entry))
 
     def create_constants_frame(self, parent_frame):
         label = tk.Label(parent_frame, text='Les constantes', bg='#2E2E2E', fg='white')
@@ -91,12 +93,15 @@ class Exo1:
             entry.grid(row=i + 1, column=4, padx=2, pady=2, sticky='nsew')
 
             self.constant_entries.append(entry)
+            entry.bind('<FocusOut>', lambda event, i=i, entry=entry: self.validate_entry(event, i, entry))
+
 
     def create_buttons_frame(self):
         button_frame = tk.Frame(self.root, bg='#2E2E2E')
         button_frame.pack(pady=10)
 
-        ttk.Button(button_frame, text="Résoudre", command=self.resoudre, style='TButton').pack(side=tk.LEFT, padx=10)
+        self.resoudre_button = ttk.Button(button_frame, text="Résoudre", command=self.resoudre, style='TButton')
+        self.resoudre_button.pack(side=tk.LEFT, padx=10)
         ttk.Button(button_frame, text="Valeurs par défauts", command=self.default_values, style='TButton').pack(side=tk.LEFT, padx=10)
         ttk.Button(button_frame, text="Reset", command=self.reset_values, style='TButton').pack(side=tk.LEFT, padx=10)
 
@@ -172,8 +177,7 @@ class Exo1:
 
             # Definir les variables de decision (des entiers): x1,x2,x3,x4,x5
             x = model.addVars(range(5), vtype=gp.GRB.INTEGER, name="x")
-            print(x)
-            print("****************************************************************")
+
             # Saisir la fonction objective
             model.setObjective(gp.quicksum(x[i] * (
                     (self.Rendement[i] * self.Prix_vente[i])
@@ -222,6 +226,35 @@ class Exo1:
             label.configure(bg=warning_window.cget('bg'))
 
             print(e)
+
+
+    def validate_entry(self, event, index, entry):
+        try:
+            value = float(entry.get())
+            if value < 0:
+                raise ValueError("Please enter a positive number.")
+            if value.is_integer():
+                entry.delete(0, tk.END)
+                entry.insert(0, str(int(value)))
+            else:
+                entry.delete(0, tk.END)
+                entry.insert(0, str(value))
+            self.resoudre_button.config(state=tk.NORMAL)
+        except ValueError:
+            self.resoudre_button.config(state=tk.DISABLED)
+            warning_window = tk.Toplevel(self.root)
+            warning_window.title("Warning")
+            warning_window.geometry("+500+250")
+            warning_window.configure(bg='red') 
+            warning_window.attributes("-alpha", 1) 
+            
+            label_text = "PLEASE ENTER A POSITIVE NUMBER !"
+            label = tk.Label(warning_window, text=label_text, fg='white', bg='red', font=("Helvetica", 14, "bold"))
+            label.pack(padx=50, pady=50)
+            label.configure(bg=warning_window.cget('bg'))
+
+            entry.delete(0, tk.END)
+            entry.insert(0, "0.0")
 
 
 if __name__ == "__main__":
