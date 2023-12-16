@@ -1,5 +1,6 @@
 import tkinter as tk
-from tkinter import Label, Entry, Button, Checkbutton, Toplevel
+from tkinter import Label, Entry, Button, Toplevel
+from tkinter import messagebox
 import gurobipy as gp
 from gurobipy import GRB
 from itertools import product
@@ -16,6 +17,7 @@ def show_menu():
 
 def get_binary_matrix_values(entries_matrix):
     binary_matrix_values = []
+    valid_input = True
     for row in entries_matrix:
         # Ensure the Entry widget is not destroyed before retrieving its value
         row_values = []
@@ -102,6 +104,37 @@ def population_interface():
     btn_submit = Button(pop_window, text="Submit", command=lambda: set_pop_values(pop_window), font=('Arial', 12),bg='lightgreen')
     btn_submit.grid(row=size + 2, columnspan=2, pady=10)
 
+def check_symmetric(matrix):
+    size = len(matrix)
+    
+    # Check if elements are 0 or 1
+    for i in range(size):
+        for j in range(size):
+            if matrix[i][j] not in [0, 1]:
+                return False
+    
+    # Check symmetry
+    for i in range(size):
+        for j in range(size):
+            if matrix[i][j] != matrix[j][i]:
+                return False
+    
+    # Check diagonal elements
+    for i in range(size):
+        if matrix[i][i] != 1:
+            return False
+    
+    return True
+def validate_matrix(entries_matrix, matrix_window, size):
+    matrix_values = [[int(entry.get()) for entry in row] for row in entries_matrix]
+
+    if check_symmetric(matrix_values):
+        matrix_window.destroy()
+        # Proceed with the matrix as it is symmetric and has correct diagonal elements
+        # Perform further operations with the matrix...
+    else:
+        messagebox.showerror("Error", "The matrix is not symmetric or diagonal elements are incorrect. Please enter again.")
+        # Clear previous entries and let the user enter the matrix again
 def matrix_interface():
     global entries_matrix
 
@@ -123,14 +156,13 @@ def matrix_interface():
     for i in range(size):
         row_entries = []
         for j in range(size):
-            entry = Entry(matrix_window, width=5, font=('Arial', 12))
-            entry.grid(row=i + 1, column=j + 1, padx=5, pady=5)
-            row_entries.append(entry)
+                entry = Entry(matrix_window, width=5, font=('Arial', 12))
+                entry.grid(row=i + 1, column=j + 1, padx=5, pady=5)
+                row_entries.append(entry)
         entries_matrix.append(row_entries)
 
-    # Bouton de soumission
-    btn_submit = Button(matrix_window, text="Submit", command=lambda: matrix_window.destroy(), font=('Arial', 12),bg='lightgreen')
-    btn_submit.grid(row=size + 1, columnspan=size + 1, pady=10)
+        btn_submit = Button(matrix_window, text="Submit", command=lambda: validate_matrix(entries_matrix, matrix_window, size))
+        btn_submit.grid(row=size + 1, columnspan=size + 1, pady=10)
 
 
 def main_interface():
@@ -175,6 +207,7 @@ def main_interface():
 
     btn_solve = Button(root, text="Solve", command=pl_4, font=('Arial', 12),bg='lightgreen')
     btn_solve.grid(row=11, columnspan=2, pady=10)
+    tk.Button(root, text="Main Menu", command=show_menu).grid(row=11, column=0, padx=5, pady=5)
     root.mainloop()
 
 # Run the main interface
