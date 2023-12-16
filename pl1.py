@@ -172,7 +172,8 @@ class Exo1:
 
             # Definir les variables de decision (des entiers): x1,x2,x3,x4,x5
             x = model.addVars(range(5), vtype=gp.GRB.INTEGER, name="x")
-
+            print(x)
+            print("****************************************************************")
             # Saisir la fonction objective
             model.setObjective(gp.quicksum(x[i] * (
                     (self.Rendement[i] * self.Prix_vente[i])
