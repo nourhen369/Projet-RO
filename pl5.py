@@ -14,9 +14,7 @@ def mark_cell(event):
     labels[row][col].config(text=cell_value)
     combine_zones(row, col, cell_value)
 
-# ... (previous code remains unchanged)
 
-# ... (previous code remains unchanged)
 
 def combine_zones(row, col, cell_value):
     def get_adjacent_cells(r, c):
@@ -70,10 +68,6 @@ def find_middle(cells):
     cols = [cell[1] for cell in cells]
     return sum(rows) // len(cells), sum(cols) // len(cells)
 
-# ... (previous code remains unchanged)
-
-# ... (previous code remains unchanged)
-
 def label_frontier(current_zone, cell_value):
     frontier = set()
     for r, c in current_zone:
@@ -93,7 +87,7 @@ def label_frontier(current_zone, cell_value):
                 labels[r][c].config(text=''.join(frontier_key))
                 marked_frontiers.add(frontier_key)
 
-# ... (rest of the code remains the same)
+
 
 
 root = tk.Tk()
