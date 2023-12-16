@@ -22,26 +22,27 @@ def pl2():
     nb = nombre_mois()
     def solve():
         try: 
-            model = gp.Model(name = "ProductionOptimization")
+            model = gp.Model(name="Production Optimization")
             
             NHS, NCH, NOR, NOL, S, NO, C, Cs, demande, Sal, Hsup, R, L, h , Vol, Hmax= [], [], [], [], [], [], [], [], [], [], [], [], [], [],[], []
-            valeurs = [NHS, NCH, NOR, NOL, S, NO, C, Cs, demande, Sal, Hsup, R, L, h , Vol, Hmax]
+            valeurs = [NHS, NCH, NOR, NOL, S, NO, C, Cs, demande, Sal, Hsup, R, L, h , Vol, Hmax] # feha les valeurs elli bch yaatihom el user
             
             for i, row_entries in enumerate(entries):
                 for j, entry in enumerate(row_entries):
+                    # print(entry)
                     try:
                         valeurs[i].append(float(entry.get()))
                     except ValueError:
                         messagebox.showerror("Error", "Prière de remplir tous les champs avec des valeurs numériques valides!")
                         return None
             
-            # Ajoutez les variables de décision au modèle
+            # Ajoutez les variables de décision au modèle, CONTINUOUS allows the variable to take any real number value within a specified range.
             heures_sup = {t: model.addVar(lb = 0, vtype=gp.GRB.CONTINUOUS, name=f"heures_sup_{i+1}") for t in range(nb)}
             paires_chaussures = {t: model.addVar(lb = 0, vtype=gp.GRB.CONTINUOUS, name=f"paires_chaussures_{i+1}") for t in range(nb)}
             ouvriers_rec = {t: model.addVar(lb = 0, vtype=gp.GRB.CONTINUOUS, name=f"ouvriers_rec_{i+1}") for t in range(nb)}
             ouvriers_lic = {t: model.addVar(lb = 0, vtype=gp.GRB.CONTINUOUS, name=f"ouvriers_lic_{i+1}") for t in range(nb)}
             
-            # les vars auxilieres
+            # les vars auxilieres [nehsbouhom des variables de decision]
             ouvriers_dispo = {t: model.addVar(vtype=gp.GRB.CONTINUOUS, name=f"ouvriers_dispo_{t}") for t in range(nb)}
             stock = {t: model.addVar(vtype=gp.GRB.CONTINUOUS, name=f"stock_{t}") for t in range(nb)}
 
@@ -54,7 +55,6 @@ def pl2():
                     model.addConstr(ouvriers_dispo[i]==ouvriers_dispo[i-1]+ouvriers_rec[i]-ouvriers_lic[i])
                     model.addConstr(stock[i]==stock[i-1]+paires_chaussures[i-1]-demande[i-1])
                 model.addConstr(heures_sup[i] <= Hmax[i]*ouvriers_dispo[i])
-                # model.addConstr(paires_chaussures[i]<=(1/nb)*(1/(heures_sup[i]+ouvriers_dispo[i]*Vol[i])))
                 # les contraintes de signe 
             model.addConstrs(stock[i] >= 0 for i in range(nb))
             model.addConstrs(ouvriers_dispo[i] >= 0 for i in range(nb))
@@ -93,7 +93,7 @@ def pl2():
     table_frame = tk.PanedWindow(root)
     table_frame.pack(side="top", fill="both", expand=True)
     
-    row_labels = ["Nombre d'heures supplémentaires",
+    parametres = ["Nombre d'heures supplémentaires",
                     "Nombre de paires de chaussures fabriqués",
                     "Nombre d'ouvriers recrutés",
                     "Nombre d'ouvriers licencés",
@@ -110,15 +110,15 @@ def pl2():
                     "Volume horaire mensuel de travail par ouvrier", 
                     "Nombre d'heures sup max par ouvrier",
                     "Résoudre le problème d'optimisation"]
-    column_labels = []
+    mois = []
     for i in range(nb):
-        column_labels.append(f"Mois {i+1}")
+        mois.append(f"Mois {i+1}")
 
-    for j, label_text in enumerate(column_labels):
+    for j, label_text in enumerate(mois):
         label = tk.Label(table_frame, text=label_text, bg='#2E2E2E', fg='white')
         label.grid(row=0, column=j+1, padx=2, pady=2, sticky='nsew', rowspan=2)
 
-    for i, label_text in enumerate(row_labels):
+    for i, label_text in enumerate(parametres):
         label = tk.Label(table_frame, text=label_text, bg='#2E2E2E', fg='white')
         label.grid(row=i+2, column=0, padx=2, pady=2, sticky='nsew')
     
