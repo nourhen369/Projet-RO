@@ -24,8 +24,8 @@ def pl2():
         try: 
             model = gp.Model(name="Production Optimization")
             
-            NHS, NCH, NOR, NOL, S, NO, C, Cs, demande, Sal, Hsup, R, L, h , Vol, Hmax= [], [], [], [], [], [], [], [], [], [], [], [], [], [],[], []
-            valeurs = [NHS, NCH, NOR, NOL, S, NO, C, Cs, demande, Sal, Hsup, R, L, h , Vol, Hmax] # feha les valeurs elli bch yaatihom el user
+            C, Cs, demande, Sal, Hsup, R, L, h , Vol, Hmax= [], [], [], [], [], [], [], [], [], [], [], [], [], [],[], []
+            valeurs = [C, Cs, demande, Sal, Hsup, R, L, h , Vol, Hmax] # feha les valeurs elli bch yaatihom el user
             
             for i, row in enumerate(entries):
                 for j, entry in enumerate(row):
@@ -69,7 +69,7 @@ def pl2():
                     ouvriers_lic[t] * L[t] +
                     heures_sup[t] * Hsup[t] +
                     paires_chaussures[t] * C[t] +
-                    NO[t] * Sal[t]
+                    100 * Sal[t]
                     for t in range(nb)
                 ),
                 gp.GRB.MINIMIZE)
@@ -93,13 +93,7 @@ def pl2():
     table_frame = tk.PanedWindow(root)
     table_frame.pack(side="top", fill="both", expand=True)
     
-    parametres = ["Nombre d'heures supplémentaires",
-                    "Nombre de paires de chaussures fabriqués",
-                    "Nombre d'ouvriers recrutés",
-                    "Nombre d'ouvriers licencés",
-                    "Stock",
-                    "Nombre d'ouvriers disponible",
-                    "Cout de production d'une paire de chaussure",
+    parametres = [  "Cout de production d'une paire de chaussure",
                     "Cout de stockage d'une paire de chaussure",
                     "Demande",
                     "Salaire d'un ouvrier", 
@@ -109,7 +103,8 @@ def pl2():
                     ": Nombre d'heure nécessaire pour fabriquer une paire de chaussure", 
                     "Volume horaire mensuel de travail par ouvrier", 
                     "Nombre d'heures sup max par ouvrier",
-                    "Résoudre le problème d'optimisation"]
+                    "Résoudre le problème d'optimisation"
+                ]
     mois = []
     for i in range(nb):
         mois.append(f"Mois {i+1}")
@@ -122,14 +117,14 @@ def pl2():
         label = tk.Label(table_frame, text=label_text)
         label.grid(row=i+2, column=0, padx=2, pady=2, sticky='nsew')
     
-    entries = [[ttk.Entry(table_frame, width=8) for _ in range(nb)] for _ in range(16)]
-    for i in range(16):
+    entries = [[ttk.Entry(table_frame, width=8) for _ in range(nb)] for _ in range(10)]
+    for i in range(10):
         for j in range(nb):
             entry = entries[i][j]
             entry.grid(row=i+2, column=j+1, padx=2, pady=2, sticky='nsew')
 
     button = tk.Button(table_frame, text="Résoudre",bg='Black', command=solve)
-    button.grid(row=18, column=1, padx=2, pady=2, sticky='nsew')
+    button.grid(row=12, column=1, padx=2, pady=2, sticky='nsew')
     
     table_frame.mainloop()
 
