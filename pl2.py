@@ -27,8 +27,8 @@ def pl2():
             NHS, NCH, NOR, NOL, S, NO, C, Cs, demande, Sal, Hsup, R, L, h , Vol, Hmax= [], [], [], [], [], [], [], [], [], [], [], [], [], [],[], []
             valeurs = [NHS, NCH, NOR, NOL, S, NO, C, Cs, demande, Sal, Hsup, R, L, h , Vol, Hmax] # feha les valeurs elli bch yaatihom el user
             
-            for i, row_entries in enumerate(entries):
-                for j, entry in enumerate(row_entries):
+            for i, row in enumerate(entries):
+                for j, entry in enumerate(row):
                     # print(entry)
                     try:
                         valeurs[i].append(float(entry.get()))
@@ -80,8 +80,8 @@ def pl2():
             # Display the optimal solution or relevant information
             if model.status == gp.GRB.OPTIMAL:
                 result_window = tk.Toplevel(root)
-                result_window.title("Results")
-                result_window.geometry("+500+250")
+                result_window.title("Résultats")
+                result_window.geometry("+250+250")
 
                 text_widget = tk.Label(result_window, width=40, height=10, text=f"Planning optimal de production: {model.objVal:.2f}")
                 text_widget.pack()
@@ -115,11 +115,11 @@ def pl2():
         mois.append(f"Mois {i+1}")
 
     for j, label_text in enumerate(mois):
-        label = tk.Label(table_frame, text=label_text, bg='#2E2E2E', fg='white')
+        label = tk.Label(table_frame, text=label_text)
         label.grid(row=0, column=j+1, padx=2, pady=2, sticky='nsew', rowspan=2)
 
     for i, label_text in enumerate(parametres):
-        label = tk.Label(table_frame, text=label_text, bg='#2E2E2E', fg='white')
+        label = tk.Label(table_frame, text=label_text)
         label.grid(row=i+2, column=0, padx=2, pady=2, sticky='nsew')
     
     entries = [[ttk.Entry(table_frame, width=8) for _ in range(nb)] for _ in range(16)]
@@ -127,9 +127,6 @@ def pl2():
         for j in range(nb):
             entry = entries[i][j]
             entry.grid(row=i+2, column=j+1, padx=2, pady=2, sticky='nsew')
-            entry_style = ttk.Style()
-            entry_style.configure('Black.TEntry', foreground='white')
-            entry.configure(style='Black.TEntry')
 
     button = tk.Button(table_frame, text="Résoudre",bg='Black', command=solve)
     button.grid(row=18, column=1, padx=2, pady=2, sticky='nsew')
